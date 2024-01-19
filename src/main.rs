@@ -25,6 +25,26 @@ struct Solution {
     cost: usize,
 }
 impl Solution {
+    fn is_valid(&self, cities: &Cities) -> bool {
+        if self.path.len() != cities.len() {
+            return false;
+        }
+
+        if self.cost != cities.cost(&self.path) {
+            return false;
+        }
+
+        let mut used_cities = [false; MAX_CITIES];
+        for &city in &self.path {
+            if used_cities[city] {
+                return false;
+            }
+            used_cities[city] = true;
+        }
+
+        true
+    }
+
     fn last(&self) -> usize {
         *self.path.last().unwrap()
     }
@@ -638,15 +658,15 @@ fn main() {
         });
 
         // greedy insert
-        s.spawn(|| {
-            let mut solver = GreedyInsertSolver::new(&cities);
-            keep_solving_until(
-                start_time + TIME_LIMIT - FINAL_PROCESSING_TIME,
-                "greedy insert",
-                tx.clone(),
-                &mut solver,
-            );
-        });
+        // s.spawn(|| {
+        //     let mut solver = GreedyInsertSolver::new(&cities);
+        //     keep_solving_until(
+        //         start_time + TIME_LIMIT - FINAL_PROCESSING_TIME,
+        //         "greedy insert",
+        //         tx.clone(),
+        //         &mut solver,
+        //     );
+        // });
 
         // genetic
         let mut polinate_txs = Vec::new();
@@ -703,8 +723,7 @@ fn main() {
                     if solution.cost < best_solution.cost {
                         println!("{:?} {} {}", start_time.elapsed(), name, solution.cost);
                         *best_solution = solution;
-                        assert!(best_solution.path.len() == cities.len());
-                        assert!(best_solution.cost == cities.cost(&best_solution.path));
+                        assert!(best_solution.is_valid(cities));
                         write_solution(output_path, best_solution).expect("write solution");
                         // send the solution to all the genetic solvers
                         for polinate_tx in &polinate_txs {
@@ -719,7 +738,6 @@ fn main() {
         });
     });
 
-    assert!(best_solution.path.len() == cities.len());
-    assert!(best_solution.cost == cities.cost(&best_solution.path));
+    assert!(best_solution.is_valid(&cities));
     write_solution(output_path, &best_solution).expect("write solution");
 }
