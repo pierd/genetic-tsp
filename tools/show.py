@@ -14,10 +14,17 @@ if __name__ == '__main__':
     cost = None
     try:
         with open(sys.argv[2]) as solution:
-            parts = solution.readline().split()
-            cost = int(parts.pop()) # remove last element (length)
-            for part in parts:
-                solved_cities.append(int(part))
+            solutions = []
+            for line in solution:
+                if not line.strip():
+                    continue
+                parts = line.strip().split()
+                cities = []
+                cost = int(parts.pop()) # remove last element (length)
+                for part in parts:
+                    cities.append(int(part))
+                solutions.append((cities, cost))
+            solved_cities, cost = min(solutions, key=lambda s: s[1])
     except:
         pass
     cities = {}
